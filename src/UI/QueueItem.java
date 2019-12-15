@@ -5,7 +5,7 @@ public class QueueItem {
 		DEFAULT,
 		ENCRYPTED,
 		COMPRESSED,
-		BY_COUNT
+		BY_AMOUNT
 	}
 	
 	public QueueItem() {
