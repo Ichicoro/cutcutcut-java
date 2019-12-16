@@ -1,4 +1,4 @@
-package Main;
+package main;
 
 import java.awt.Font;
 
@@ -6,7 +6,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import UI.MainWindow;
+import com.bulenkov.darcula.DarculaLookAndFeelInfo;
+
+import ui.MainWindow;
 
 public class Main {
 	
@@ -18,8 +20,8 @@ public class Main {
 	            @Override
 	            public void run () {
 	            	try {
-	            		if (!System.getProperty("os.name").equals("Mac"))
-	            			UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+	            		if (true || !System.getProperty("os.name").equals("Mac"))
+	            			UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
