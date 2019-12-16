@@ -23,7 +23,8 @@ public class Main {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-	            	setUIFont (new javax.swing.plaf.FontUIResource("SF Pro Text",Font.PLAIN,12));
+	            	if (System.getProperty("os.name").equals("Mac"))
+	            		setUIFont(new javax.swing.plaf.FontUIResource("SF Pro Text",Font.PLAIN,12));
 	            	MainWindow frame = new MainWindow();
 					frame.setVisible(true);
 	            }

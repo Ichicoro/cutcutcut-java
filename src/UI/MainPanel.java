@@ -9,7 +9,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JToolBar;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,18 +17,10 @@ import java.io.File;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import java.awt.GridLayout;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
-import java.awt.SystemColor;
 import java.awt.Dimension;
 
 public class MainPanel extends JPanel {
@@ -75,12 +66,6 @@ public class MainPanel extends JPanel {
 		springLayout.putConstraint(SpringLayout.SOUTH, btnAddFile, 0, SpringLayout.SOUTH, this);
 		add(btnAddFile);
 		
-		btnRemoveFile = new JButton("Remove file");
-		btnRemoveFile.setEnabled(false);
-		springLayout.putConstraint(SpringLayout.NORTH, btnRemoveFile, 0, SpringLayout.NORTH, btnSplit);
-		springLayout.putConstraint(SpringLayout.WEST, btnRemoveFile, 0, SpringLayout.EAST, btnAddFile);
-		add(btnRemoveFile);
-		
 		table = new JTable();
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
@@ -97,8 +82,14 @@ public class MainPanel extends JPanel {
 		panel.setMinimumSize(new Dimension(44, 10));
 		splitQueuePanel.add(panel, BorderLayout.EAST);
 		
-		btnPlus = new JButton("plus");
+		btnPlus = new JButton("Add");
 		panel.add(btnPlus);
+		
+		btnRemoveFile = new JButton("Del");
+		panel.add(btnRemoveFile);
+		btnRemoveFile.setEnabled(false);
+		springLayout.putConstraint(SpringLayout.NORTH, btnRemoveFile, 0, SpringLayout.NORTH, btnSplit);
+		springLayout.putConstraint(SpringLayout.WEST, btnRemoveFile, 0, SpringLayout.EAST, btnAddFile);
 		
 		setupTable();
 		setupListeners();
@@ -112,7 +103,7 @@ public class MainPanel extends JPanel {
 				((DefaultTableModel) table.getModel()).removeRow(table.getSelectedRow());
 			}
 		});
-		btnAddFile.addActionListener(new ActionListener() {
+		btnPlus.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				File selectedFile = pickFile();
@@ -124,11 +115,12 @@ public class MainPanel extends JPanel {
 	
 	private void setupTable() {
 		table.setFocusable(false);
+		table.getTableHeader().setReorderingAllowed(false); 
 		mod=new DefaultTableModel() {
 			@Override 
 		    public boolean isCellEditable(int row, int column)
 		    {
-		        return (column == 1);
+		        return (column == 2);
 		    }
 			
 			@Override
@@ -161,11 +153,11 @@ public class MainPanel extends JPanel {
 		table.setModel(mod);
 		mod.addColumn("Filename");
 		mod.addColumn("Action");
-		mod.addColumn("Action type");
+		mod.addColumn("Method");
 		mod.addColumn("Status");
-		table.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(generateComboBox()));
-		mod.addRow(new Object [] {"manjaro.iso", "By Size", "Waiting..."});
-		mod.addRow(new Object [] {"andre_gay_se_leggi.txt", "By Size", "Waiting..."});
+		table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(generateComboBox()));
+		mod.addRow(new Object [] {"manjaro.iso", "Split","By Size", "Waiting..."});
+		mod.addRow(new Object [] {"andre_gay_se_leggi.txt", "Split", "By Size", "Waiting..."});
 	}
 	
 	private JComboBox generateComboBox() {
