@@ -14,6 +14,7 @@ import javax.swing.table.DefaultTableModel;
 import actors.*;
 import actors.FileSplitterByPartSize;
 import utils.Progress;
+import utils.Utils;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -25,9 +26,11 @@ import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.TrayIcon.MessageType;
 
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
@@ -57,17 +60,32 @@ public class MainPanel extends JPanel {
 		actions.add(a);
 		
 		Object[] listEntry = {
-			a.getFile().getAbsoluteFile(),
+			a.getFile().getPath(),
 			(a instanceof FileSplitter) ? "Split" : "Merge",
-			"rip",
+			Utils.getActionTypeText(a),
 			"Waiting..."
 		};
+		
+		((DefaultTableModel) table.getModel()).addRow(listEntry);
 		
 		//if (a instanceof FileSplitter) {
 		return true;
 	}
+	
 	private void removeAction(int index) {
 		
+	}
+	
+	private boolean replaceAction(Action a, int index) {
+		if (a == null) return false;
+		DefaultTableModel dtm = ((DefaultTableModel) table.getModel());
+		if (index < 0 || index >= dtm.getRowCount()) 
+			return false;
+		
+		actions.remove(index);
+		actions.add(index, a);
+		
+		return true;
 	}
 
 	/**
@@ -89,7 +107,7 @@ public class MainPanel extends JPanel {
 		springLayout.putConstraint(SpringLayout.WEST, lblQueue, 10, SpringLayout.WEST, this);
 		add(lblQueue);
 		lblQueue.setHorizontalAlignment(SwingConstants.LEFT);
-		lblQueue.setFont(new Font("SF Pro Text", Font.BOLD, 16));
+		lblQueue.setFont(lblQueue.getFont().deriveFont(16f).deriveFont(Font.BOLD));
 		
 		JPanel splitQueuePanel = new JPanel();
 		springLayout.putConstraint(SpringLayout.NORTH, splitQueuePanel, 5, SpringLayout.SOUTH, lblQueue);
@@ -178,8 +196,9 @@ public class MainPanel extends JPanel {
 	    splitMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File selectedFile = pickFile("Select to-be-split file...");
-				mod.addRow(new Object[] { selectedFile.getPath(), "Split", "By size", "Waiting..."});
+//				File selectedFile = pickFile("Select to-be-split file...");
+				pickSplittableFile();
+//				mod.addRow(new Object[] { selectedFile.getPath(), "Split", "By size", "Waiting..."});
 				btnRun.setEnabled(true);
 			}
 		});
@@ -206,30 +225,28 @@ public class MainPanel extends JPanel {
 			}
 		});
 		
+		btnEdit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SplitActionDialog sad = new SplitActionDialog(actions.get(table.getSelectedRow()));
+				Action a = sad.showDialog();
+				System.out.println(a);
+				if (a == null)
+					return;
+				else
+					replaceAction(a, table.getSelectedRow());
+			}
+		});
+		
 		btnRun.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (table.getSelectedRow() == -1) return;
-				String path = (String) table.getValueAt(table.getSelectedRow(), 0);
+				Action selectedAction = actions.get(table.getSelectedRow());
 				
 				try {
-					FileSplitterByPartSize fsbps = new FileSplitterByPartSize(path, 1024*1024*20);
-					fsbps.setActionListener(new ActionListener() {
-						int lastMax = 0;
-						
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							if (lastMax != ((Progress) e.getSource()).getTotal()) {
-								lastMax = ((Progress) e.getSource()).getTotal();
-								progressBar.setMaximum(lastMax);
-							}
-							System.out.println(e.getSource() + "/" + e.getID());
-							progressBar.setValue(((Progress) e.getSource()).getValue());
-							progressBar.update(progressBar.getGraphics());
-						}
-					});
-					fsbps.split();
-				} catch (FileNotFoundException e1) {
+					((FileSplitter) selectedAction).split();
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -241,14 +258,12 @@ public class MainPanel extends JPanel {
 		table.getTableHeader().setReorderingAllowed(false); 
 		mod=new DefaultTableModel() {
 			@Override 
-		    public boolean isCellEditable(int row, int column)
-		    {
-		        return (column == 2);
-		    }
+		    public boolean isCellEditable(int row, int column) { return false; }
 			
 			@Override
 			public void removeRow(int row) {
 				super.removeRow(row);
+				actions.remove(row);
 				if (table.getRowCount() == 0) {
 					// Disable the Split button, duh
 					btnRun.setEnabled(false);
@@ -283,8 +298,6 @@ public class MainPanel extends JPanel {
 		mod.addColumn("Method");
 		mod.addColumn("Status");
 		//table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(generateComboBox()));
-		mod.addRow(new Object [] {"manjaro.iso", "Split","By Size", "Waiting..."});
-		mod.addRow(new Object [] {"andre_gay_se_leggi.txt", "Split", "By Size", "Waiting..."});
 	}
 	
 	private JComboBox generateComboBox() {
@@ -326,5 +339,13 @@ public class MainPanel extends JPanel {
 	
 	private void pickSplittableFile() {
 		File selectedFile = pickFile("Select to-be-split file...");
+		if (selectedFile == null || !selectedFile.exists() || !selectedFile.canRead()) {
+			JOptionPane.showMessageDialog(this, "Invalid file selected", "Error!", JOptionPane.ERROR_MESSAGE, null);
+			return;
+		}
+		SplitActionDialog sad = new SplitActionDialog(selectedFile);
+		Action a = sad.showDialog();
+		if (a == null) return;
+		addAction(a);
 	}
 }

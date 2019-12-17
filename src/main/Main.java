@@ -19,6 +19,7 @@ public class Main {
 			SwingUtilities.invokeLater ( new Runnable () {
 	            @Override
 	            public void run () {
+	            	UIManager.getFont("Label.font"); // This fixes the Darcula theme on Linux -- WTF??
 	            	try {
 	            		if (true || !System.getProperty("os.name").equals("Mac"))
 	            			UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
