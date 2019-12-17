@@ -24,12 +24,16 @@ public class Utils {
 		if (a instanceof FileSplitter) {
 			if (a instanceof FileSplitterByPartSize) {
 				return "By size";
+			} else if (a instanceof FileSplitterWithEncryption) {
+				return "Encrypted";
 			} else if (a instanceof FileSplitterByPartCount) {
 				return "By count";
 			}
 		} else {
-			return "owo";
+			if (a instanceof DefaultFileMerger) {
+				return "By size/count";
+			}
 		}
-		return null;
+		return "";
 	}
 }

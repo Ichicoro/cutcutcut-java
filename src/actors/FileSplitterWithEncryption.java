@@ -16,6 +16,7 @@ import javax.crypto.*;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import actors.Action.Status;
 import utils.Progress;
 
 public class FileSplitterWithEncryption extends Action implements FileSplitter {
@@ -48,11 +49,11 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
 	
 	public FileSplitterWithEncryption(File inputFile, String key, int partSize) throws FileNotFoundException, InvalidKeyException { this(inputFile, key, (long) partSize); }
 	public FileSplitterWithEncryption(File inputFile, String key, long partSize) throws FileNotFoundException, InvalidKeyException {
-		if (!setFile(inputFile)) {
-			throw new FileNotFoundException();
-		}
-		if (key == null)
+		super(inputFile);
+		if (key == null) {
+			setStatus(Status.ERROR);
 			throw new InvalidKeyException();
+		}
 		setKey(key);
 		setPartSize(partSize);
 
@@ -65,10 +66,13 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
 			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			cipher.init(Cipher.ENCRYPT_MODE, secret);
 		} catch (NoSuchAlgorithmException e) {
+			setStatus(Status.ERROR);
 			e.printStackTrace();
 		} catch (NoSuchPaddingException e) {
+			setStatus(Status.ERROR);
 			e.printStackTrace();
 		} catch (InvalidKeySpecException e) {
+			setStatus(Status.ERROR);
 			e.printStackTrace();
 		}
 	}
@@ -76,7 +80,11 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
 	@Override
 	public int split() {
 		// If the file doesn't exist anymore, return an error
-		if (!file.exists() || !file.canRead()) return SplitResult.MISSING_FILE.ordinal();
+		if (!file.exists() || !file.canRead()) {
+			setStatus(Status.ERROR);
+			return SplitResult.MISSING_FILE.ordinal();
+		}
+		setStatus(Status.PROCESSING);
 		
 		long parts = (file.length() + partSize - 1) / partSize;
         long lastPartSize = file.length() - (partSize * (parts - 1));
@@ -105,16 +113,18 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
             
     		inputStream.close();
 		} catch (IOException e) {
+			setStatus(Status.ERROR);
 			System.out.println("ERROR ;-;");
 			e.printStackTrace();
 			return SplitResult.GENERIC_ERROR.ordinal();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
+			setStatus(Status.ERROR);
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
+			setStatus(Status.ERROR);
 			e.printStackTrace();
 		}
+		setStatus(Status.FINISHED);
 		return SplitResult.OK.ordinal();
 	}
 	

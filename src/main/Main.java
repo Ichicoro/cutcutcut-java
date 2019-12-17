@@ -20,14 +20,15 @@ public class Main {
 	            @Override
 	            public void run () {
 	            	UIManager.getFont("Label.font"); // This fixes the Darcula theme on Linux -- WTF??
+	            	System.out.println(System.getProperty("os.name"));
+	            	if (System.getProperty("os.name").contains("Mac"))
+	            		setUIFont(new javax.swing.plaf.FontUIResource("SF Pro Text",Font.PLAIN,12));
 	            	try {
-	            		if (true || !System.getProperty("os.name").equals("Mac"))
-	            			UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
+//	            		if (true || !System.getProperty("os.name").contains("Mac"))
+	            		UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-	            	if (System.getProperty("os.name").equals("Mac"))
-	            		setUIFont(new javax.swing.plaf.FontUIResource("SF Pro Text",Font.PLAIN,12));
 	            	MainWindow frame = new MainWindow();
 					frame.setVisible(true);
 	            }

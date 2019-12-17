@@ -68,6 +68,7 @@ public class SplitActionDialog extends JDialog {
 	
 	//@wbp.parser.constructor 
 	public SplitActionDialog() {
+		setTitle("Split");
 		this.setModalityType(DEFAULT_MODALITY_TYPE); 
 		setBounds(100, 100, 450, 300);
 		getContentPane().setLayout(new BorderLayout());
@@ -81,11 +82,6 @@ public class SplitActionDialog extends JDialog {
 			{
 				JPanel splitSizePanel = new JPanel();
 				tabbedPane.addTab("Split by size", null, splitSizePanel, null);
-				splitSizePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-				
-				JLabel lblSize = new JLabel("Split size");
-				lblSize.setHorizontalAlignment(SwingConstants.CENTER);
-				splitSizePanel.add(lblSize);
 				
 				// Create formatter for the textfield
 			    NumberFormatter formatter = new NumberFormatter(NumberFormat.getInstance());
@@ -95,22 +91,41 @@ public class SplitActionDialog extends JDialog {
 			    formatter.setAllowsInvalid(false);
 			    // If you want the value to be committed on each keystroke instead of focus lost
 			    formatter.setCommitsOnValidEdit(true);
+				GridBagLayout gbl_splitSizePanel = new GridBagLayout();
+				gbl_splitSizePanel.columnWidths = new int[] {116};
+				gbl_splitSizePanel.rowHeights = new int[] {34};
+				gbl_splitSizePanel.columnWeights = new double[]{1.0, 0.0};
+				gbl_splitSizePanel.rowWeights = new double[]{0.0};
+				splitSizePanel.setLayout(gbl_splitSizePanel);
+				
+				JPanel panel_2 = new JPanel();
+				GridBagConstraints gbc_panel_2 = new GridBagConstraints();
+				gbc_panel_2.anchor = GridBagConstraints.NORTH;
+				gbc_panel_2.fill = GridBagConstraints.HORIZONTAL;
+				gbc_panel_2.gridwidth = 2;
+				gbc_panel_2.gridx = 0;
+				gbc_panel_2.gridy = 0;
+				splitSizePanel.add(panel_2, gbc_panel_2);
+				
+				JLabel lblSize = new JLabel("Split size");
+				panel_2.add(lblSize);
+				lblSize.setHorizontalAlignment(SwingConstants.CENTER);
 				
 				
 				standardSplitSizeTextField = new JFormattedTextField(formatter);
+				panel_2.add(standardSplitSizeTextField);
 				standardSplitSizeTextField.setHorizontalAlignment(SwingConstants.CENTER);
 				standardSplitSizeTextField.setText("1000000");
-				splitSizePanel.add(standardSplitSizeTextField);
 				standardSplitSizeTextField.setColumns(10);
 			}
 			{
 				JPanel encryptedSplitSizePanel = new JPanel();
 				tabbedPane.addTab("Encrypt", null, encryptedSplitSizePanel, null);
 				GridBagLayout gbl_encryptedSplitSizePanel = new GridBagLayout();
-				gbl_encryptedSplitSizePanel.columnWidths = new int[]{116, 0, 190, 0};
-				gbl_encryptedSplitSizePanel.rowHeights = new int[]{34, 24, 0, 0};
+				gbl_encryptedSplitSizePanel.columnWidths = new int[] {318};
+				gbl_encryptedSplitSizePanel.rowHeights = new int[] {34, 30};
 				gbl_encryptedSplitSizePanel.columnWeights = new double[]{1.0, 0.0, 0.0, Double.MIN_VALUE};
-				gbl_encryptedSplitSizePanel.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
+				gbl_encryptedSplitSizePanel.rowWeights = new double[]{0.0, 0.0};
 				encryptedSplitSizePanel.setLayout(gbl_encryptedSplitSizePanel);
 				{
 					
@@ -122,24 +137,24 @@ public class SplitActionDialog extends JDialog {
 				    formatter.setCommitsOnValidEdit(true);
 				}
 				
-				JPanel panel_1 = new JPanel();
-				GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-				gbc_panel_1.gridwidth = 3;
-				gbc_panel_1.fill = GridBagConstraints.VERTICAL;
-				gbc_panel_1.insets = new Insets(0, 0, 5, 5);
-				gbc_panel_1.gridx = 0;
-				gbc_panel_1.gridy = 0;
-				encryptedSplitSizePanel.add(panel_1, gbc_panel_1);
-				JLabel lblEncSize = new JLabel("Split size");
-				panel_1.add(lblEncSize);
-				lblEncSize.setHorizontalAlignment(SwingConstants.CENTER);
-				
 				NumberFormatter formatter = new NumberFormatter(NumberFormat.getInstance());
 			    formatter.setValueClass(Integer.class);
 			    formatter.setMinimum(0);
 			    formatter.setMaximum(Integer.MAX_VALUE);
 			    formatter.setAllowsInvalid(false);
 			    formatter.setCommitsOnValidEdit(true);
+				
+				JPanel panel_1 = new JPanel();
+				GridBagConstraints gbc_panel_1 = new GridBagConstraints();
+				gbc_panel_1.gridwidth = 5;
+				gbc_panel_1.fill = GridBagConstraints.BOTH;
+				gbc_panel_1.insets = new Insets(0, 0, 5, 0);
+				gbc_panel_1.gridx = 0;
+				gbc_panel_1.gridy = 0;
+				encryptedSplitSizePanel.add(panel_1, gbc_panel_1);
+				JLabel lblEncSize = new JLabel("Split size");
+				panel_1.add(lblEncSize);
+				lblEncSize.setHorizontalAlignment(SwingConstants.CENTER);
 				
 			    encryptedSplitSizeTextField = new JFormattedTextField(formatter);
 			    panel_1.add(encryptedSplitSizeTextField);
@@ -149,9 +164,10 @@ public class SplitActionDialog extends JDialog {
 				
 				JPanel panel = new JPanel();
 				GridBagConstraints gbc_panel = new GridBagConstraints();
-				gbc_panel.gridwidth = 3;
+				gbc_panel.fill = GridBagConstraints.HORIZONTAL;
 				gbc_panel.anchor = GridBagConstraints.NORTH;
-				gbc_panel.insets = new Insets(0, 0, 5, 5);
+				gbc_panel.gridwidth = 5;
+				gbc_panel.insets = new Insets(0, 0, 5, 0);
 				gbc_panel.gridx = 0;
 				gbc_panel.gridy = 1;
 				encryptedSplitSizePanel.add(panel, gbc_panel);
@@ -168,24 +184,35 @@ public class SplitActionDialog extends JDialog {
 			{
 				JPanel splitAmountPanel = new JPanel();
 				tabbedPane.addTab("Split by amount", null, splitAmountPanel, null);
-				{
-					JLabel lblAmountOfSplits = new JLabel("Amount of splits");
-					splitAmountPanel.add(lblAmountOfSplits);
-					
-					NumberFormatter formatter = new NumberFormatter(NumberFormat.getInstance());
-				    formatter.setValueClass(Integer.class);
-				    formatter.setMinimum(0);
-				    formatter.setMaximum(Integer.MAX_VALUE);
-				    formatter.setAllowsInvalid(false);
-				    formatter.setCommitsOnValidEdit(true);
-					
-					
-				    splitAmountTextField = new JFormattedTextField(formatter);
-				    splitAmountTextField.setHorizontalAlignment(SwingConstants.CENTER);
-				    splitAmountTextField.setText("1");
-					splitAmountPanel.add(splitAmountTextField);
-					splitAmountTextField.setColumns(10);
-				}
+				GridBagLayout gbl_splitAmountPanel = new GridBagLayout();
+				gbl_splitAmountPanel.columnWidths = new int[] {0};
+				gbl_splitAmountPanel.rowHeights = new int[] {34};
+				gbl_splitAmountPanel.columnWeights = new double[]{1.0};
+				gbl_splitAmountPanel.rowWeights = new double[]{0.0};
+				splitAmountPanel.setLayout(gbl_splitAmountPanel);
+				    
+				    
+			    NumberFormatter formatter = new NumberFormatter(NumberFormat.getInstance());
+			    formatter.setValueClass(Integer.class);
+			    formatter.setMinimum(1);
+			    formatter.setMaximum(Integer.MAX_VALUE);
+			    formatter.setAllowsInvalid(false);
+			    formatter.setCommitsOnValidEdit(true);
+		        
+		        JPanel panel = new JPanel();
+		        GridBagConstraints gbc_panel = new GridBagConstraints();
+		        gbc_panel.insets = new Insets(0, 0, 0, 5);
+		        gbc_panel.fill = GridBagConstraints.BOTH;
+		        gbc_panel.gridx = 0;
+		        gbc_panel.gridy = 0;
+		        splitAmountPanel.add(panel, gbc_panel);
+		        JLabel lblAmountOfSplits = new JLabel("Amount of splits");
+		        panel.add(lblAmountOfSplits);
+		        splitAmountTextField = new JFormattedTextField(formatter);
+		        panel.add(splitAmountTextField);
+		        splitAmountTextField.setHorizontalAlignment(SwingConstants.CENTER);
+		        splitAmountTextField.setText("1");
+		        splitAmountTextField.setColumns(10);
 			}
 		}
 		{

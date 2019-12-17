@@ -12,7 +12,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
 import actors.*;
-import actors.FileSplitterByPartSize;
+import utils.FileUtils;
 import utils.Progress;
 import utils.Utils;
 
@@ -67,13 +67,7 @@ public class MainPanel extends JPanel {
 		};
 		
 		((DefaultTableModel) table.getModel()).addRow(listEntry);
-		
-		//if (a instanceof FileSplitter) {
 		return true;
-	}
-	
-	private void removeAction(int index) {
-		
 	}
 	
 	private boolean replaceAction(Action a, int index) {
@@ -92,6 +86,15 @@ public class MainPanel extends JPanel {
 	 * Create the panel.
 	 */
 	public MainPanel() {
+		DefaultFileMerger dfm;
+		try {
+			dfm = new DefaultFileMerger(new File("/Users/ichicoro/Desktop/test_split/debian-10.2.0-amd64-netinst.iso.dpart001"));
+			dfm.getFiles();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		actions = new ArrayList<Action>();
 		
 		setOpaque(false);
@@ -196,9 +199,7 @@ public class MainPanel extends JPanel {
 	    splitMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				File selectedFile = pickFile("Select to-be-split file...");
 				pickSplittableFile();
-//				mod.addRow(new Object[] { selectedFile.getPath(), "Split", "By size", "Waiting..."});
 				btnRun.setEnabled(true);
 			}
 		});
@@ -207,8 +208,7 @@ public class MainPanel extends JPanel {
 	    mergeMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File selectedFile = pickFile("Select to-be-merged file...");
-				mod.addRow(new Object[] { selectedFile.getPath(), "Merge", "By size", "Waiting..."});
+				pickMergeableFile();
 				btnRun.setEnabled(true);
 			}
 		});
@@ -245,7 +245,10 @@ public class MainPanel extends JPanel {
 				Action selectedAction = actions.get(table.getSelectedRow());
 				
 				try {
-					((FileSplitter) selectedAction).split();
+					if (selectedAction instanceof FileSplitter)
+						((FileSplitter) selectedAction).split();
+					else
+						System.out.println(((FileMerger) selectedAction).merge());
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -264,13 +267,10 @@ public class MainPanel extends JPanel {
 			public void removeRow(int row) {
 				super.removeRow(row);
 				actions.remove(row);
-				if (table.getRowCount() == 0) {
-					// Disable the Split button, duh
+				if (table.getRowCount() == 0)
 					btnRun.setEnabled(false);
-				} else {
+				else
 					table.addRowSelectionInterval(table.getRowCount()-1, table.getRowCount()-1);
-				}
-				// TODO: CALL DATA REMOVAL HERE
 			}
 		};
 		
@@ -283,9 +283,11 @@ public class MainPanel extends JPanel {
 		    	  btnRemoveFile.setEnabled(false);
 		    	  btnEdit.setEnabled(false);
 		    	  // TODO: FIX THIS SHIT													<------------------- FIX ME
-		      } else {
+			  } else {
 		    	  btnRemoveFile.setEnabled(true);
-		    	  btnEdit.setEnabled(true);
+		    	  btnEdit.setEnabled(false);
+				  if (!(actions.get(table.getSelectedRow()) instanceof DefaultFileMerger))
+					  btnEdit.setEnabled(true);
 //		    	  settingsPanel.add(new JLabel((String) table.getValueAt(table.getSelectedRow(), 0)));
 		      }
 		  }
@@ -345,6 +347,34 @@ public class MainPanel extends JPanel {
 		}
 		SplitActionDialog sad = new SplitActionDialog(selectedFile);
 		Action a = sad.showDialog();
+		if (a == null) return;
+		addAction(a);
+	}
+	
+	private void pickMergeableFile() {
+		File selectedFile = pickFile("Select to-be-merged file...");
+		if (selectedFile == null || !selectedFile.exists() || !selectedFile.canRead() || !FileUtils.verifyMergeFilename(selectedFile.getName())) {
+			System.out.println(selectedFile.getName());
+			JOptionPane.showMessageDialog(this, "Invalid file selected. File has to end with .dpart001, .epart001 or .cpart001", "Error!", JOptionPane.ERROR_MESSAGE, null);
+			return;
+		}
+		char fileType = FileUtils.getMergeFileType(selectedFile.getName());
+		if (fileType == '0') {
+			return;
+		}
+		Action a = null;
+		try {
+			switch (FileUtils.getMergeFileType(selectedFile.getName())) {
+			case 'd':
+				a = new DefaultFileMerger(selectedFile.getName());
+			case 'e':
+			case 'c':
+			default:
+				break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (a == null) return;
 		addAction(a);
 	}

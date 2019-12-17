@@ -31,16 +31,18 @@ public class FileSplitterByPartSize extends Action implements FileSplitter {
 	
 	public FileSplitterByPartSize(File inputFile, int partSize) throws FileNotFoundException { this(inputFile, (long) partSize); }
 	public FileSplitterByPartSize(File inputFile, long partSize) throws FileNotFoundException {
-		if (!setFile(inputFile)) {
-			throw new FileNotFoundException();
-		}
+		super(inputFile);
 		setPartSize(partSize);
 	}
 
 	@Override
 	public int split() {
 		// If the file doesn't exist anymore, return an error
-		if (!file.exists() || !file.canRead()) return SplitResult.MISSING_FILE.ordinal();
+		if (!file.exists() || !file.canRead()) {
+			setStatus(Status.ERROR);
+			return SplitResult.MISSING_FILE.ordinal();
+		}
+		setStatus(Status.PROCESSING);
 		
 		long parts = (file.length() + partSize - 1) / partSize;
         long lastPartSize = file.length() - (partSize * (parts - 1));
@@ -69,10 +71,12 @@ public class FileSplitterByPartSize extends Action implements FileSplitter {
             
     		inputStream.close();
 		} catch (IOException e) {
+			setStatus(Status.ERROR);
 			System.out.println("ERROR ;-;");
 			e.printStackTrace();
 			return SplitResult.GENERIC_ERROR.ordinal();
 		}
+		setStatus(Status.FINISHED);
 		return SplitResult.OK.ordinal();
 	}
 	

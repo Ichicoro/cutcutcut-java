@@ -1,12 +1,20 @@
 package utils;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileUtils {
-	public static final long DEFAULT_BUFFER_SIZE = 1024*1024*1;
+	public static boolean verifyMergeFilename(String filename) {
+		return (Pattern.compile("(?=\\b)[d,e,c](?=part0+1\\b)").matcher(filename).find());
+		//return filename.matches("(?=\\b)[d,e,c]part0+1\\b");//(".[d,e,c]part0+1\\b");
+	}
 	
-	public boolean transfer(FileInputStream fis, FileOutputStream fos, long bufferSize) {
-		return true;
+	public static char getMergeFileType(String filename) {
+		Pattern p = Pattern.compile("(?=\\b)[d,e,c](?=part0+1\\b)");
+		Matcher m = p.matcher(filename);
+		
+		if (m.find())
+			return m.group(0).charAt(0);
+		return 0;
 	}
 }

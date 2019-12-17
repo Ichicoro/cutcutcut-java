@@ -9,7 +9,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
+
+import actors.DefaultFileMerger;
+
 import java.awt.GridLayout;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class MainWindow extends JFrame {
 
