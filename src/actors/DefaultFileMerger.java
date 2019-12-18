@@ -77,7 +77,7 @@ public class DefaultFileMerger extends Action implements FileMerger {
 		}
 		setStatus(Status.PROCESSING);
 		
-		File outputFile = new File(getFile().getPath().replaceAll("(?=\\b)dpart0+1\\b", ""));  // old -> "(?=\\b)[d,e,c]part0+1\\b"
+		File outputFile = new File(getFile().getPath().replaceAll("(?=\\b)\\.dpart0+1\\b", ""));  // old -> "(?=\\b)[d,e,c]part0+1\\b"
 		System.out.println(outputFile.getPath());
 		
 		ArrayList<File> inputFiles = getFiles();

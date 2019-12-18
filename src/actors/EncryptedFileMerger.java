@@ -122,7 +122,7 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 		}
 		setStatus(Status.PROCESSING);
 		
-		File outputFile = new File(getFile().getPath().replaceAll("(?=\\b)epart0+1\\b", ""));
+		File outputFile = new File(getFile().getPath().replaceAll("(?=\\b)\\.epart0+1\\b", ""));
 		System.out.println(outputFile.getPath());
 		
 		ArrayList<File> inputFiles = getFiles();
