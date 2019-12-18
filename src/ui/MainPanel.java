@@ -9,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import actors.*;
@@ -68,6 +69,7 @@ public class MainPanel extends JPanel {
 		};
 		
 		((DefaultTableModel) table.getModel()).addRow(listEntry);
+		table.update(table.getGraphics());
 		return true;
 	}
 	
@@ -261,19 +263,30 @@ public class MainPanel extends JPanel {
 		btnRun.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				for (int i = 0; i<table.getRowCount(); i++)
+					((DefaultTableModel) table.getModel()).setValueAt("Processing...", i, table.getColumnCount()-1);
+				table.update(table.getGraphics());
+				
 				if (table.getSelectedRow() == -1) return;
+				
 				Action selectedAction = actions.get(table.getSelectedRow());
 				
 				try {
 					if (selectedAction instanceof FileSplitter)
-						((FileSplitter) selectedAction).split();
+						if (((FileSplitter) selectedAction).split() != 0) {
+							((DefaultTableModel) table.getModel()).setValueAt("ERROR!", table.getSelectedRow(), table.getColumnCount()-1);
+							return;
+						}
 					else
-						if (EncryptedFileMerger.MergeResult.values()[((FileMerger) selectedAction).merge()] == EncryptedFileMerger.MergeResult.DECRYPTION_ERROR)
+						if (((FileMerger) selectedAction).merge() != EncryptedFileMerger.MergeResult.OK.ordinal()) {
+							((DefaultTableModel) table.getModel()).setValueAt("ERROR!", table.getSelectedRow(), table.getColumnCount()-1);
 							JOptionPane.showMessageDialog(null, "Wrong password", "Error!", JOptionPane.ERROR_MESSAGE, null);
-						//System.out.println(EncryptedFileMerger.MergeResult.values()[((FileMerger) selectedAction).merge()]);
+							return;
+						}
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
+				((DefaultTableModel) table.getModel()).setValueAt("Completed", table.getSelectedRow(), table.getColumnCount()-1);
 			}
 		});
 	}
@@ -384,17 +397,20 @@ public class MainPanel extends JPanel {
 		if (fileType == '0') {
 			return;
 		}
+		System.out.println("AAAAAAAAAA: " + fileType);
 		Action a = null;
 		try {
-			switch (FileUtils.getMergeFileType(selectedFile.getName())) {
+			switch (fileType) {
 			case 'd':
 				a = new DefaultFileMerger(selectedFile.getPath());
+				break;
 			case 'e':
 				String key = JOptionPane.showInputDialog("What's the decryption key?");
 				a = new EncryptedFileMerger(selectedFile.getPath(), key);
+				break;
 			case 'c':
 			default:
-				break;
+				return;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

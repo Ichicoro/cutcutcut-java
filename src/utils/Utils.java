@@ -32,6 +32,8 @@ public class Utils {
 		} else {
 			if (a instanceof DefaultFileMerger) {
 				return "By size/count";
+			} else if (a instanceof EncryptedFileMerger) {
+				return "Encrypted";
 			}
 		}
 		return "";
