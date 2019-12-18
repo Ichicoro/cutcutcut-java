@@ -317,13 +317,11 @@ public class MainPanel extends JPanel {
 			  if (table.getSelectedRow() == -1) {
 		    	  btnRemoveFile.setEnabled(false);
 		    	  btnEdit.setEnabled(false);
-		    	  // TODO: FIX THIS SHIT													<------------------- FIX ME
 			  } else {
 		    	  btnRemoveFile.setEnabled(true);
 		    	  btnEdit.setEnabled(false);
 				  if (!(actions.get(table.getSelectedRow()) instanceof DefaultFileMerger))
 					  btnEdit.setEnabled(true);
-//		    	  settingsPanel.add(new JLabel((String) table.getValueAt(table.getSelectedRow(), 0)));
 		      }
 		  }
 
