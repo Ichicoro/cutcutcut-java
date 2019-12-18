@@ -7,12 +7,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 
 import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -64,14 +66,8 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
 			SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES");
 			
 			cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.ENCRYPT_MODE, secret);
-		} catch (NoSuchAlgorithmException e) {
-			setStatus(Status.ERROR);
-			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			setStatus(Status.ERROR);
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
+			cipher.init(Cipher.ENCRYPT_MODE, secret, new IvParameterSpec(new byte[16]));
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException e) {
 			setStatus(Status.ERROR);
 			e.printStackTrace();
 		}

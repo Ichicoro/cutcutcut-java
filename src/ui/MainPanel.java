@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
 import javax.swing.JLabel;
@@ -228,9 +229,28 @@ public class MainPanel extends JPanel {
 		btnEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SplitActionDialog sad = new SplitActionDialog(actions.get(table.getSelectedRow()));
-				Action a = sad.showDialog();
-				System.out.println(a);
+				Action sel = actions.get(table.getSelectedRow());
+				Action a = null;
+				// String key = JOptionPane.showInputDialog("What's the decryption key?");
+				// a = new EncryptedFileMerger(selectedFile.getPath(), key);
+				if (sel instanceof FileSplitter) {
+					SplitActionDialog sad = new SplitActionDialog(sel);
+					a = sad.showDialog();
+					System.out.println(a);
+					if (a == null)
+						return;
+					else
+						replaceAction(a, table.getSelectedRow());
+				} else {
+					if (sel instanceof EncryptedFileMerger) {
+						String key = JOptionPane.showInputDialog("What's the decryption key?", ((EncryptedFileMerger)sel).getKey());
+						try {
+							a = new EncryptedFileMerger(sel.getFile(), key);
+						} catch (InvalidKeyException | FileNotFoundException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
 				if (a == null)
 					return;
 				else
@@ -248,7 +268,9 @@ public class MainPanel extends JPanel {
 					if (selectedAction instanceof FileSplitter)
 						((FileSplitter) selectedAction).split();
 					else
-						System.out.println(((FileMerger) selectedAction).merge());
+						if (EncryptedFileMerger.MergeResult.values()[((FileMerger) selectedAction).merge()] == EncryptedFileMerger.MergeResult.DECRYPTION_ERROR)
+							JOptionPane.showMessageDialog(null, "Wrong password", "Error!", JOptionPane.ERROR_MESSAGE, null);
+						//System.out.println(EncryptedFileMerger.MergeResult.values()[((FileMerger) selectedAction).merge()]);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -366,8 +388,10 @@ public class MainPanel extends JPanel {
 		try {
 			switch (FileUtils.getMergeFileType(selectedFile.getName())) {
 			case 'd':
-				a = new DefaultFileMerger(selectedFile.getName());
+				a = new DefaultFileMerger(selectedFile.getPath());
 			case 'e':
+				String key = JOptionPane.showInputDialog("What's the decryption key?");
+				a = new EncryptedFileMerger(selectedFile.getPath(), key);
 			case 'c':
 			default:
 				break;
