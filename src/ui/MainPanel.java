@@ -421,52 +421,38 @@ public class MainPanel extends JPanel {
 					// Process each row.
 					Action selectedAction = actions.get(actionIndex);
 					
-					int res;
+					int actionResult;
 					try {
 						if (selectedAction instanceof FileSplitter) {
-							res = ((FileSplitter) selectedAction).split();
+							actionResult = ((FileSplitter) selectedAction).split();
 						} else {
-							res = ((FileMerger) selectedAction).merge();
+							actionResult = ((FileMerger) selectedAction).merge();
 						}
 					} catch (Exception e1) {
 						e1.printStackTrace();
-						res = Action.Status.ERROR.ordinal();
+						actionResult = Action.Status.ERROR.ordinal();
 					}
-					final int actionResult = res;
 					
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							String finalActionStatus = Utils.capitalizeString(selectedAction.getStatus().name());
-							
-							if (selectedAction.getStatus() == Action.Status.ERROR) {
-								finalActionStatus += ": ";
-								if (selectedAction instanceof FileSplitter) {
-									finalActionStatus += FileSplitterByPartSize.SplitResult.values()[actionResult];
-								} else if (selectedAction instanceof DefaultFileMerger) {
-									finalActionStatus += DefaultFileMerger.MergeResult.values()[actionResult];
-								} else if (selectedAction instanceof EncryptedFileMerger) {
-									finalActionStatus += EncryptedFileMerger.MergeResult.values()[actionResult];
-								}
-							}
-							
-							((DefaultTableModel) table.getModel()).setValueAt(finalActionStatus, actionIndex, table.getColumnCount()-1);
-							
-							// Update the progress bar
-							progressBar.setValue(actionIndex+1);
-							progressBar.paint(progressBar.getGraphics());
-//							((DefaultTableModel) table.getModel()).setValueAt("Completed", actionIndex, table.getColumnCount()-1);
+					String finalActionStatus = Utils.capitalizeString(selectedAction.getStatus().name());
+					
+					if (selectedAction.getStatus() == Action.Status.ERROR) {
+						finalActionStatus += ": ";
+						if (selectedAction instanceof FileSplitter) {
+							finalActionStatus += FileSplitterByPartSize.SplitResult.values()[actionResult];
+						} else if (selectedAction instanceof DefaultFileMerger) {
+							finalActionStatus += DefaultFileMerger.MergeResult.values()[actionResult];
+						} else if (selectedAction instanceof EncryptedFileMerger) {
+							finalActionStatus += EncryptedFileMerger.MergeResult.values()[actionResult];
 						}
-					});
+					}
 					
-//					try {
-//						
-//					} catch (InvocationTargetException | InterruptedException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
+					((DefaultTableModel) table.getModel()).setValueAt(finalActionStatus, actionIndex, table.getColumnCount()-1);
 					
+					// Update the progress bar
+					progressBar.setValue(actionIndex+1);
+					progressBar.paint(progressBar.getGraphics());
 					
+					table.update(table.getGraphics());
 				}
 			}
 		};
