@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public abstract class Action {
-	enum Status {
+	public enum Status {
 		WAITING,
 		PROCESSING,
 		FINISHED,
@@ -24,6 +24,7 @@ public abstract class Action {
 	public Status getStatus() { return status; }
 	protected void setStatus(Status s) { 
 		status = s;
+		System.out.println("Status: " + s);
 		if (statusChanged != null)
 			statusChanged.actionPerformed(new ActionEvent(this, status.ordinal(), "status_changed " + status.ordinal()));
 	}

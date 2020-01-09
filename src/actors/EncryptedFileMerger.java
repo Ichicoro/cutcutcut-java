@@ -25,6 +25,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import actors.Action.Status;
+import utils.FileUtils;
 
 public class EncryptedFileMerger extends Action implements FileMerger {
 	public EncryptedFileMerger(String fileName, String key) throws FileNotFoundException, InvalidKeyException {
@@ -138,6 +139,7 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 				FileInputStream inputStream = new FileInputStream(f);
 				byte[] buffer = new byte[(int) f.length()];
 				
+				// We can't use the transfer function here: it'd screw up the padding
 				inputStream.read(buffer);
 				outputStream.write(cipher.doFinal(buffer));
 				inputStream.close();
@@ -156,8 +158,6 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 			setStatus(Status.ERROR);
 			return MergeResult.DECRYPTION_ERROR.ordinal();
 		}
-		
-		// outputStream.write(b, off, len);
 		
 		setStatus(Status.FINISHED);
 		return MergeResult.OK.ordinal();

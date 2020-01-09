@@ -15,6 +15,7 @@ public class Utils {
     }
 	
 	public static String getActionTypeText(Action a) {
+		System.out.println(a.getClass());
 		if (a instanceof FileSplitter)
 			if (a instanceof FileSplitterByPartSize)
 				return "By size";
@@ -22,11 +23,21 @@ public class Utils {
 				return "Encrypted";
 			else if (a instanceof FileSplitterByPartCount)
 				return "By count";
-		else
+		if (a instanceof FileMerger)
 			if (a instanceof DefaultFileMerger)
 				return "By size/count";
 			else if (a instanceof EncryptedFileMerger)
 				return "Encrypted";
-		return "";
+		System.out.println("is a a merger? " + (a instanceof DefaultFileMerger));// || a instanceof EncryptedFileMerger));
+		return "???";
+	}
+	
+	public static String capitalizeString(String str) {
+		if (str.length() == 0)
+			return "";
+		else if (str.length() == 1)
+			return str.toUpperCase();
+		else
+			return str.toUpperCase().charAt(0) + str.toLowerCase().substring(1);
 	}
 }

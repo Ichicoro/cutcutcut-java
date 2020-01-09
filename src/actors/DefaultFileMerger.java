@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
+import utils.FileUtils;
+
 public class DefaultFileMerger extends Action implements FileMerger {
 	public DefaultFileMerger(String fileName) throws FileNotFoundException {
 		super(new File(fileName));
@@ -84,6 +86,8 @@ public class DefaultFileMerger extends Action implements FileMerger {
 		int parts = inputFiles.size();
 		int i = 1;
 		
+		System.out.println("Test?");
+		
 		long offset = 0;
 		
 		try {
@@ -93,8 +97,10 @@ public class DefaultFileMerger extends Action implements FileMerger {
 				FileInputStream inputStream = new FileInputStream(f);
 				byte[] buffer = new byte[(int) f.length()];
 				
-				inputStream.read(buffer);
-				outputStream.write(buffer);
+				FileUtils.transfer(inputStream, outputStream, buffer.length);
+				
+//				inputStream.read(buffer);
+//				outputStream.write(buffer);
 				inputStream.close();
 				
 				System.out.println("part: " + i + "/" + parts + "; len: " + buffer.length + "; offset: " + offset);
@@ -111,6 +117,7 @@ public class DefaultFileMerger extends Action implements FileMerger {
 		// outputStream.write(b, off, len);
 		
 		setStatus(Status.FINISHED);
+		System.out.println(getStatus());
 		return MergeResult.OK.ordinal();
 	}
 

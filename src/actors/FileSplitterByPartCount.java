@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import utils.FileUtils;
 import utils.Progress;
 
 public class FileSplitterByPartCount extends Action implements FileSplitter {
@@ -63,9 +64,7 @@ public class FileSplitterByPartCount extends Action implements FileSplitter {
                 byte[] buffer = new byte[(int) len];
             	System.out.println("part: " + i + "/" + parts + "; len: " + len + "; offset: " + ((i-1)*partSize));
             	
-                inputStream.read(buffer, 0, (int) len);
-                
-                outputStream.write(buffer);
+            	FileUtils.transfer(inputStream, outputStream, len);
                 outputStream.close();
             }
             

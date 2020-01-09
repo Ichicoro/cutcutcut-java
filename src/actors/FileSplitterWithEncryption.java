@@ -19,6 +19,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import actors.Action.Status;
+import utils.FileUtils;
 import utils.Progress;
 
 public class FileSplitterWithEncryption extends Action implements FileSplitter {

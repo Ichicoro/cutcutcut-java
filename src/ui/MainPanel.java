@@ -13,6 +13,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import actors.*;
+import jdk.jshell.Snippet.Status;
 import utils.FileUtils;
 import utils.Progress;
 import utils.Utils;
@@ -23,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
@@ -37,6 +39,8 @@ import java.awt.TrayIcon.MessageType;
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
+
 import java.awt.BorderLayout;
 import javax.swing.ListSelectionModel;
 import java.awt.Dimension;
@@ -48,7 +52,6 @@ import java.awt.FlowLayout;
 public class MainPanel extends JPanel {
 	private JTable table;
 	private JButton btnRemoveFile;
-	private JButton btnAddFile;
 	private JButton btnRun;
 	private DefaultTableModel mod;
 	private JPanel panel;
@@ -56,20 +59,28 @@ public class MainPanel extends JPanel {
 	private JButton btnEdit;
 	private JProgressBar progressBar;
 	
+	private boolean activeButtons = true;
+	
 	private ArrayList<Action> actions;
 	private boolean addAction(Action a) {
 		if (a == null) return false;
 		actions.add(a);
+		System.out.println(a.getClass());
+		String actionType = Utils.getActionTypeText(a);
+		System.out.println(actionType);
 		
 		Object[] listEntry = {
 			a.getFile().getPath(),
 			(a instanceof FileSplitter) ? "Split" : "Merge",
-			Utils.getActionTypeText(a),
+			actionType,
 			"Waiting..."
 		};
 		
 		((DefaultTableModel) table.getModel()).addRow(listEntry);
 		table.update(table.getGraphics());
+		progressBar.setMaximum(table.getRowCount());
+		progressBar.setValue(0);
+		progressBar.paint(progressBar.getGraphics());
 		return true;
 	}
 	
@@ -81,6 +92,7 @@ public class MainPanel extends JPanel {
 		
 		actions.remove(index);
 		actions.add(index, a);
+		dtm.setValueAt(Utils.getActionTypeText(a), index, 2);
 		
 		return true;
 	}
@@ -164,7 +176,7 @@ public class MainPanel extends JPanel {
 		panel.add(btnRemoveFile);
 		btnRemoveFile.setEnabled(false);
 		springLayout.putConstraint(SpringLayout.NORTH, btnRemoveFile, 0, SpringLayout.NORTH, btnRun);
-		springLayout.putConstraint(SpringLayout.WEST, btnRemoveFile, 0, SpringLayout.EAST, btnAddFile);
+//		springLayout.putConstraint(SpringLayout.WEST, btnRemoveFile, 0, SpringLayout.EAST, btnAddFile);
 		
 		
 		btnEdit = new JButton();
@@ -263,30 +275,7 @@ public class MainPanel extends JPanel {
 		btnRun.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i<table.getRowCount(); i++)
-					((DefaultTableModel) table.getModel()).setValueAt("Processing...", i, table.getColumnCount()-1);
-				table.update(table.getGraphics());
-				
-				if (table.getSelectedRow() == -1) return;
-				
-				Action selectedAction = actions.get(table.getSelectedRow());
-				
-				try {
-					if (selectedAction instanceof FileSplitter)
-						if (((FileSplitter) selectedAction).split() != 0) {
-							((DefaultTableModel) table.getModel()).setValueAt("ERROR!", table.getSelectedRow(), table.getColumnCount()-1);
-							return;
-						}
-					else
-						if (((FileMerger) selectedAction).merge() != EncryptedFileMerger.MergeResult.OK.ordinal()) {
-							((DefaultTableModel) table.getModel()).setValueAt("ERROR!", table.getSelectedRow(), table.getColumnCount()-1);
-							JOptionPane.showMessageDialog(null, "Wrong password", "Error!", JOptionPane.ERROR_MESSAGE, null);
-							return;
-						}
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				((DefaultTableModel) table.getModel()).setValueAt("Completed", table.getSelectedRow(), table.getColumnCount()-1);
+				startQueue();
 			}
 		});
 	}
@@ -314,7 +303,7 @@ public class MainPanel extends JPanel {
 
 		cellSelectionModel.addListSelectionListener(new ListSelectionListener() {
 		  public void valueChanged(ListSelectionEvent e) {
-			  if (table.getSelectedRow() == -1) {
+			  if (table.getSelectedRow() == -1 || !activeButtons) {
 		    	  btnRemoveFile.setEnabled(false);
 		    	  btnEdit.setEnabled(false);
 			  } else {
@@ -334,27 +323,6 @@ public class MainPanel extends JPanel {
 		mod.addColumn("Status");
 		//table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(generateComboBox()));
 	}
-	
-	private JComboBox generateComboBox() {
-		JComboBox jc = new JComboBox();
-		jc.addItem(makeObj("By Size"));
-		jc.addItem(makeObj("Encrypted"));
-		jc.addItem(makeObj("Compressed"));
-		jc.addItem(makeObj("By Amount"));
-		jc.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.out.println(e);
-				System.out.println(jc.getSelectedIndex());
-			}
-		});
-		System.out.println(jc.getSelectedIndex());
-		return jc;
-	}
-	
-	private Object makeObj(final String item)  {
-        return new Object() { public String toString() { return item; } };
-    }
 	
 	public File pickFile() { return pickFile("Pick a file..."); }
 	public File pickFile(String dialogTitle) {
@@ -395,7 +363,6 @@ public class MainPanel extends JPanel {
 		if (fileType == '0') {
 			return;
 		}
-		System.out.println("AAAAAAAAAA: " + fileType);
 		Action a = null;
 		try {
 			switch (fileType) {
@@ -415,5 +382,98 @@ public class MainPanel extends JPanel {
 		}
 		if (a == null) return;
 		addAction(a);
+	}
+	
+	private void setButtonsEnabled(boolean btnState) {
+//		SwingUtilities.invokeLater(new Runnable() {
+//			@Override
+//			public void run() {
+////			activeButtons = btnState;
+//			}
+//		});
+		btnPlus.setEnabled(btnState);
+		table.setRowSelectionAllowed(btnState);
+//		btnRemoveFile.setEnabled(btnState);
+//		btnEdit.setEnabled(btnState);
+//		btnRun.setEnabled(btnState);
+		activeButtons = btnState;
+	}
+	
+	private void startQueue() {
+		for (int i = 0; i<table.getRowCount(); i++)
+			((DefaultTableModel) table.getModel()).setValueAt("Processing...", i, table.getColumnCount()-1);
+		table.clearSelection();
+		table.update(table.getGraphics());
+		progressBar.setValue(0);
+		progressBar.paint(progressBar.getGraphics());
+		setButtonsEnabled(false);
+		
+		btnRun.setEnabled(false);
+		btnRun.paint(btnRun.getGraphics());
+		
+		
+		Thread queueThread = new Thread() {
+			@Override
+			public void run() {
+				for (int i = 0; i<table.getRowCount(); i++) {
+					final int actionIndex = i;
+					
+					// Process each row.
+					Action selectedAction = actions.get(actionIndex);
+					
+					int res;
+					try {
+						if (selectedAction instanceof FileSplitter) {
+							res = ((FileSplitter) selectedAction).split();
+						} else {
+							res = ((FileMerger) selectedAction).merge();
+						}
+					} catch (Exception e1) {
+						e1.printStackTrace();
+						res = Action.Status.ERROR.ordinal();
+					}
+					final int actionResult = res;
+					
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							String finalActionStatus = Utils.capitalizeString(selectedAction.getStatus().name());
+							
+							if (selectedAction.getStatus() == Action.Status.ERROR) {
+								finalActionStatus += ": ";
+								if (selectedAction instanceof FileSplitter) {
+									finalActionStatus += FileSplitterByPartSize.SplitResult.values()[actionResult];
+								} else if (selectedAction instanceof DefaultFileMerger) {
+									finalActionStatus += DefaultFileMerger.MergeResult.values()[actionResult];
+								} else if (selectedAction instanceof EncryptedFileMerger) {
+									finalActionStatus += EncryptedFileMerger.MergeResult.values()[actionResult];
+								}
+							}
+							
+							((DefaultTableModel) table.getModel()).setValueAt(finalActionStatus, actionIndex, table.getColumnCount()-1);
+							
+							// Update the progress bar
+							progressBar.setValue(actionIndex+1);
+							progressBar.paint(progressBar.getGraphics());
+//							((DefaultTableModel) table.getModel()).setValueAt("Completed", actionIndex, table.getColumnCount()-1);
+						}
+					});
+					
+//					try {
+//						
+//					} catch (InvocationTargetException | InterruptedException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+					
+					
+				}
+			}
+		};
+		queueThread.run();
+		
+		progressBar.setValue(table.getRowCount());
+		progressBar.paint(progressBar.getGraphics());
+		setButtonsEnabled(true);
 	}
 }
