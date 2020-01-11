@@ -22,9 +22,9 @@ public abstract class Action {
 	
 	protected Status status = Status.WAITING;
 	public Status getStatus() { return status; }
-	protected void setStatus(Status s) { 
+	public void setStatus(Status s) { 
 		status = s;
-		System.out.println("Status: " + s);
+//		System.out.println("Status: " + s);
 		if (statusChanged != null)
 			statusChanged.actionPerformed(new ActionEvent(this, status.ordinal(), "status_changed " + status.ordinal()));
 	}

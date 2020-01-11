@@ -61,9 +61,12 @@ public class MainPanel extends JPanel {
 	
 	private boolean activeButtons = true;
 	
+	private volatile int amountOfCompletedActions = 0;
+	
 	private ArrayList<Action> actions;
 	private boolean addAction(Action a) {
 		if (a == null) return false;
+		a.setStatus(Action.Status.WAITING);
 		actions.add(a);
 		System.out.println(a.getClass());
 		String actionType = Utils.getActionTypeText(a);
@@ -92,7 +95,9 @@ public class MainPanel extends JPanel {
 		
 		actions.remove(index);
 		actions.add(index, a);
+		btnRun.setEnabled(true);
 		dtm.setValueAt(Utils.getActionTypeText(a), index, 2);
+		dtm.setValueAt("Waiting...", index, 3);
 		
 		return true;
 	}
@@ -309,7 +314,7 @@ public class MainPanel extends JPanel {
 			  } else {
 		    	  btnRemoveFile.setEnabled(true);
 		    	  btnEdit.setEnabled(false);
-				  if (!(actions.get(table.getSelectedRow()) instanceof DefaultFileMerger))
+				  if (!(actions.get(table.getSelectedRow()) instanceof DefaultFileMerger) && actions.get(table.getSelectedRow()).getStatus() != Action.Status.FINISHED)
 					  btnEdit.setEnabled(true);
 		      }
 		  }
@@ -321,7 +326,6 @@ public class MainPanel extends JPanel {
 		mod.addColumn("Action");
 		mod.addColumn("Method");
 		mod.addColumn("Status");
-		//table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(generateComboBox()));
 	}
 	
 	public File pickFile() { return pickFile("Pick a file..."); }
@@ -384,24 +388,21 @@ public class MainPanel extends JPanel {
 		addAction(a);
 	}
 	
-	private void setButtonsEnabled(boolean btnState) {
-//		SwingUtilities.invokeLater(new Runnable() {
-//			@Override
-//			public void run() {
-////			activeButtons = btnState;
-//			}
-//		});
+	private void setButtonsEnabled(final boolean btnState) {
 		btnPlus.setEnabled(btnState);
 		table.setRowSelectionAllowed(btnState);
-//		btnRemoveFile.setEnabled(btnState);
-//		btnEdit.setEnabled(btnState);
-//		btnRun.setEnabled(btnState);
+		this.paint(this.getGraphics());
 		activeButtons = btnState;
 	}
 	
 	private void startQueue() {
-		for (int i = 0; i<table.getRowCount(); i++)
-			((DefaultTableModel) table.getModel()).setValueAt("Processing...", i, table.getColumnCount()-1);
+		amountOfCompletedActions = 0;
+		
+		for (int i=0; i<table.getRowCount(); i++) {
+			if (actions.get(i).getStatus() == Action.Status.WAITING)
+				((DefaultTableModel) table.getModel()).setValueAt("Processing...", i, table.getColumnCount()-1);
+		}
+		
 		table.clearSelection();
 		table.update(table.getGraphics());
 		progressBar.setValue(0);
@@ -411,14 +412,15 @@ public class MainPanel extends JPanel {
 		btnRun.setEnabled(false);
 		btnRun.paint(btnRun.getGraphics());
 		
+		final int actionCount = table.getRowCount();
+		ArrayList<Thread> threads = new ArrayList<Thread>();
 		
-		Thread queueThread = new Thread() {
-			@Override
-			public void run() {
-				for (int i = 0; i<table.getRowCount(); i++) {
-					final int actionIndex = i;
-					
-					// Process each row.
+		for (int i=0; i<actionCount; i++) {
+			if (actions.get(i).getStatus() != Action.Status.WAITING) continue;
+			final int actionIndex = i;
+			threads.add(new Thread() {
+				@Override
+				public void run() {
 					Action selectedAction = actions.get(actionIndex);
 					
 					int actionResult;
@@ -447,19 +449,40 @@ public class MainPanel extends JPanel {
 					}
 					
 					((DefaultTableModel) table.getModel()).setValueAt(finalActionStatus, actionIndex, table.getColumnCount()-1);
+					table.update(table.getGraphics());
 					
-					// Update the progress bar
-					progressBar.setValue(actionIndex+1);
+					synchronized(this) {
+						amountOfCompletedActions += 1;
+					}
+					progressBar.setValue(amountOfCompletedActions);
 					progressBar.paint(progressBar.getGraphics());
 					
-					table.update(table.getGraphics());
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							
+						}
+					});
 				}
-			}
-		};
-		queueThread.run();
+			});
+		}
 		
-		progressBar.setValue(table.getRowCount());
-		progressBar.paint(progressBar.getGraphics());
+		progressBar.setMaximum(threads.size());
+		progressBar.repaint();
+		
+		for (Thread t : threads) {
+			t.start();
+		}
+		
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		setButtonsEnabled(true);
 	}
 }

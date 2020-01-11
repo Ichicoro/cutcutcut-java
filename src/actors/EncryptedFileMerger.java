@@ -90,11 +90,8 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 		
 		String parentPath = getFile().getParent();
 		String readyFilename = getFile().getName().replaceAll("(?=(.+).\\b)\\d{3}\\b", "");
-		System.out.println(readyFilename);
-		System.out.println(file.getPath());
 		for (File f : new File(parentPath).listFiles()) {
 			if (f.isFile() && f.getName().startsWith(readyFilename)) {
-				System.out.println(f + " (isFile: " + f.isFile() + ", path: " + f.getPath() + ")");
 				files.add(f);
 			}
 		}
@@ -108,8 +105,6 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 		
 		for (File f : files)
 			System.out.println(f);
-		
-		System.out.println(getFile().getPath());
 		
 		return files;
 	}

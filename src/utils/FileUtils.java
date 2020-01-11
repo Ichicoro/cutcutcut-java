@@ -14,25 +14,21 @@ public class FileUtils {
 	private final static int DEFAULT_BUFFER_LENGTH = 1024 * 1024 * 1;
 	
 	public static boolean verifyMergeFilename(String filename) {
-		return (Pattern.compile("(?=\\b)([dec])(?=part0+1\\b)").matcher(filename).find());
+		return (Pattern.compile("(?=\\b)([de])(?=part0+1\\b)").matcher(filename).find());
 	}
 	
 	public static char getMergeFileType(String filename) {
-		Matcher m = Pattern.compile("(?=\\b)([dec])(?=part0+1\\b)").matcher(filename);
+		Matcher m = Pattern.compile("(?=\\b)([de])(?=part0+1\\b)").matcher(filename);
 		if (m.find())
 			return m.group(0).charAt(0);
 		return 0;
 	}
 	
 	public static void transfer(FileInputStream fis, FileOutputStream fos, long partLength) throws IOException {
-        try {
-			transfer(fis,fos,partLength, DEFAULT_BUFFER_LENGTH, null);
-		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			// This won't ever happen :)
-		}
+        transfer(fis,fos,partLength, DEFAULT_BUFFER_LENGTH);
     }
 
-    public static void transfer(FileInputStream fis, FileOutputStream fos, long partLength, int maxBufferLength, Cipher c) throws IOException, IllegalBlockSizeException, BadPaddingException {
+    public static void transfer(FileInputStream fis, FileOutputStream fos, long partLength, int maxBufferLength) throws IOException {
         int bufferLength;
         int lastBufferLength;
         byte[] buffer;
@@ -47,10 +43,7 @@ public class FileUtils {
             
             for (long i = numberOfTransfers; i > 1; i--) {
                 fis.read(buffer);
-                if (c != null)
-                	fos.write(c.doFinal(buffer));
-                else
-                	fos.write(buffer);
+                fos.write(buffer);
             }
         } else {
         	// Else, it's okay to cast to int
@@ -59,13 +52,6 @@ public class FileUtils {
 
         buffer = new byte[lastBufferLength];
         fis.read(buffer);
-        if (c != null)
-        	fos.write(c.doFinal(buffer));
-        else
-        	fos.write(buffer);
-    }
-    
-    public static void transfer(FileInputStream fis, FileOutputStream fos, long partLength, Cipher c) throws IOException, IllegalBlockSizeException, BadPaddingException {
-        transfer(fis,fos,partLength, DEFAULT_BUFFER_LENGTH, c);
+        fos.write(buffer);
     }
 }
