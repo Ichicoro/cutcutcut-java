@@ -7,15 +7,38 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.regex.Pattern;
 
 import utils.FileUtils;
 
+/**
+ * A {@link FileMerger} that can merge splits.
+ */
 public class DefaultFileMerger extends Action implements FileMerger {
+	/**
+	 * An {@code enum} that defines the possible results of a merge
+	 */
+	public enum MergeResult {
+		OK,
+		MISSING_FILE,
+		IO_ERROR,
+		SIZE_TOO_BIG,
+		GENERIC_ERROR
+	}
+	
+	/**
+	 * Constructor that takes in a {@code fileName}
+	 * @param fileName The path of the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public DefaultFileMerger(String fileName) throws FileNotFoundException {
 		super(new File(fileName));
 	}
 	
+	/**
+	 * Constructor that takes in a {@link File}
+	 * @param f The the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public DefaultFileMerger(File f) throws FileNotFoundException {
 		super(f);
 	}
@@ -28,14 +51,7 @@ public class DefaultFileMerger extends Action implements FileMerger {
 		return true;
 	}
 
-	public enum MergeResult {
-		OK,
-		MISSING_FILE,
-		IO_ERROR,
-		SIZE_TOO_BIG,
-		GENERIC_ERROR
-	}
-	
+	@Override
 	public ArrayList<File> getFiles() {
 		if (!file.exists() || !file.canRead()) {
 			if (getStatus() != Status.ERROR)
@@ -90,9 +106,6 @@ public class DefaultFileMerger extends Action implements FileMerger {
 				byte[] buffer = new byte[(int) f.length()];
 				
 				FileUtils.transfer(inputStream, outputStream, buffer.length);
-				
-//				inputStream.read(buffer);
-//				outputStream.write(buffer);
 				inputStream.close();
 				
 				System.out.println("part: " + i + "/" + parts + "; len: " + buffer.length + "; offset: " + offset);
@@ -105,8 +118,6 @@ public class DefaultFileMerger extends Action implements FileMerger {
 			setStatus(Status.ERROR);
 			return MergeResult.IO_ERROR.ordinal();
 		}
-		
-		// outputStream.write(b, off, len);
 		
 		setStatus(Status.FINISHED);
 		System.out.println(getStatus());

@@ -1,7 +1,5 @@
 package actors;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,11 +7,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import utils.FileUtils;
-import utils.Progress;
 
+/**
+ * A {@link FileSplitter} that splits {@link File}s by part count
+ */
 public class FileSplitterByPartCount extends Action implements FileSplitter {
 	public static final long DEFAULT_COUNT = 1;
 	
+	/**
+	 * An {@code enum} that defines the possible results of a split
+	 */
 	public enum SplitResult {
 		OK,
 		MISSING_FILE,
@@ -21,16 +24,66 @@ public class FileSplitterByPartCount extends Action implements FileSplitter {
 		GENERIC_ERROR
 	}
 	
+	/**
+	 * The amount of parts that the source {@link File} will be split into.
+	 */
 	protected long partCount;
-	public long getPartCount() { return partCount; }
-	public void setPartCount(long count) { partCount = count; }
 	
+	/**
+	 * Retuns the part count
+	 * @return The part count
+	 */
+	public long getPartCount() { return partCount; }
+	
+	/**
+	 * Sets the part count
+	 * @param count the amount of parts
+	 * @return {@code true} if successful, {@code false} if not
+	 */
+	public boolean setPartCount(long count) {
+		if (partCount >= 1) {
+			partCount = count;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Constructor that takes in a {@link File}
+	 * @param inputFile The the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartCount(File inputFile) throws FileNotFoundException { this(inputFile, DEFAULT_COUNT); }
+	
+	/**
+	 * Constructor that takes in a {@code String} path
+	 * @param inputFilePath The path of the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartCount(String inputFilePath) throws FileNotFoundException { this(inputFilePath, DEFAULT_COUNT); }
 	
+	/**
+	 * Constructor that takes in a {@code String} path and a {@code partCount}
+	 * @param inputFilePath The path of the input {@link File}
+	 * @param partCount The amount of partitions
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartCount(String inputFilePath, long partCount) throws FileNotFoundException { this(new File(inputFilePath), partCount); } 
 	
+	/**
+	 * Constructor that takes in a {@link File} and a {@code partCount}
+	 * @param inputFile The input {@link File}
+	 * @param partCount The amount of partitions
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartCount(File inputFile, int partCount) throws FileNotFoundException { this(inputFile, (long) partCount); }
+	
+	/**
+	 * Constructor that takes in a {@link File} and a {@code partCount}
+	 * @param inputFile The input {@link File}
+	 * @param partCount The amount of partitions
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartCount(File inputFile, long partCount) throws FileNotFoundException {
 		super(inputFile);
 		setPartCount(partCount);
@@ -61,7 +114,6 @@ public class FileSplitterByPartCount extends Action implements FileSplitter {
                 FileOutputStream outputStream = new FileOutputStream(outputFile);
                 
                 long len = partSize;
-                byte[] buffer = new byte[(int) len];
             	System.out.println("part: " + i + "/" + parts + "; len: " + len + "; offset: " + ((i-1)*partSize));
             	
             	FileUtils.transfer(inputStream, outputStream, len);

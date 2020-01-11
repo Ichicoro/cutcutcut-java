@@ -4,27 +4,21 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.SpringLayout;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import actors.*;
-import jdk.jshell.Snippet.Status;
 import utils.FileUtils;
-import utils.Progress;
 import utils.Utils;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 
@@ -34,12 +28,10 @@ import javax.swing.JOptionPane;
 
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.TrayIcon.MessageType;
 
 import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
 
 import java.awt.BorderLayout;
 import javax.swing.ListSelectionModel;

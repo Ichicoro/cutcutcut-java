@@ -12,7 +12,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -24,14 +23,50 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import actors.Action.Status;
-import utils.FileUtils;
-
-public class EncryptedFileMerger extends Action implements FileMerger {
+/**
+ * A {@link FileMerger} that can decrypt encryped splits.
+ */
+public class EncryptedFileMerger extends DefaultFileMerger implements FileMerger {
+	/**
+	 * An {@code enum} that defines the possible results of a merge
+	 */
+	public enum MergeResult {
+		OK,
+		MISSING_FILE,
+		IO_ERROR,
+		SIZE_TOO_BIG,
+		GENERIC_ERROR,
+		DECRYPTION_ERROR
+	}
+	
+	/**
+	 * The key used for decryption
+	 */
+	private String key;
+	
+	/**
+	 * The {@code Cipher} used for decryption
+	 */
+	private Cipher cipher;
+	
+	/**
+	 * Constructor that takes in a {@code fileName}
+	 * @param fileName The path of the input {@link File}
+	 * @param key The "password" to the {@code File}
+	 * @throws FileNotFoundException
+	 * @throws InvalidKeyException
+	 */
 	public EncryptedFileMerger(String fileName, String key) throws FileNotFoundException, InvalidKeyException {
 		this(new File(fileName), key);
 	}
 	
+	/**
+	 * Constructor that takes in a {@code fileName}
+	 * @param f The input {@link File}
+	 * @param key The "password" to the {@code File}
+	 * @throws FileNotFoundException
+	 * @throws InvalidKeyException
+	 */
 	public EncryptedFileMerger(File f, String key) throws FileNotFoundException, InvalidKeyException {
 		super(f);
 		if (key == null) {
@@ -54,9 +89,16 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 		}
 	}
 	
-	private String key;
-	private Cipher cipher;
+	/**
+	 * Gets the {@code key}
+	 * @return The {@code key}
+	 */
 	public String getKey() { return key; }
+	
+	/**
+	 * Sets the {@code key}
+	 * @param key The {@code key}
+	 */
 	public boolean setKey(String key) {
 		if (key != null)
 			this.key = key;
@@ -69,44 +111,6 @@ public class EncryptedFileMerger extends Action implements FileMerger {
 			return false;
 		file = f;
 		return true;
-	}
-
-	public enum MergeResult {
-		OK,
-		MISSING_FILE,
-		IO_ERROR,
-		SIZE_TOO_BIG,
-		DECRYPTION_ERROR,
-		GENERIC_ERROR
-	}
-	
-	public ArrayList<File> getFiles() {
-		if (!file.exists() || !file.canRead()) {
-			if (getStatus() != Status.ERROR)
-				setStatus(Status.ERROR);
-			return null;
-		}
-		ArrayList<File> files = new ArrayList<File>();
-		
-		String parentPath = getFile().getParent();
-		String readyFilename = getFile().getName().replaceAll("(?=(.+).\\b)\\d{3}\\b", "");
-		for (File f : new File(parentPath).listFiles()) {
-			if (f.isFile() && f.getName().startsWith(readyFilename)) {
-				files.add(f);
-			}
-		}
-		
-		files.sort(new Comparator<File>() {
-			@Override
-			public int compare(File o1, File o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
-		
-		for (File f : files)
-			System.out.println(f);
-		
-		return files;
 	}
 	
 	@Override

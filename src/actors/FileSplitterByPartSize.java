@@ -1,7 +1,5 @@
 package actors;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,11 +7,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import utils.FileUtils;
-import utils.Progress;
 
+/**
+ * A {@link FileSplitter} that splits {@link File}s by part size
+ */
 public class FileSplitterByPartSize extends Action implements FileSplitter {
 	public static final long DEFAULT_BUFFER_SIZE = 1024*1024*1;
 	
+	/**
+	 * An {@code enum} that defines the possible results of a split
+	 */
 	public enum SplitResult {
 		OK,
 		MISSING_FILE,
@@ -21,16 +24,66 @@ public class FileSplitterByPartSize extends Action implements FileSplitter {
 		GENERIC_ERROR
 	}
 	
+	/**
+	 * The size of each partition.
+	 */
 	protected long partSize;
-	public long getPartSize() { return partSize; }
-	public void setPartSize(long size) { partSize = size; }
 	
+	/**
+	 * Gets the size of each partition.
+	 * @return The size of each partition
+	 */
+	public long getPartSize() { return partSize; }
+	
+	/**
+	 * Sets the size of each partition.
+	 * @param size The size of each partition
+	 * @return {@code true} if successful, {@code false} if not
+	 */
+	public boolean setPartSize(long size) { 
+		if (size > 0) {
+			partSize = size; 
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Constructor that takes in a {@link File}
+	 * @param inputFile The the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartSize(File inputFile) throws FileNotFoundException { this(inputFile, DEFAULT_BUFFER_SIZE); }
+	
+	/**
+	 * Constructor that takes in a path
+	 * @param inputFilePath The path of the input {@link File}
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartSize(String inputFilePath) throws FileNotFoundException { this(inputFilePath, DEFAULT_BUFFER_SIZE); }
 	
+	/**
+	 * Constructor that takes in a path and a partition size
+	 * @param inputFilePath The path of the input {@link File}
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartSize(String inputFilePath, long partSize) throws FileNotFoundException { this(new File(inputFilePath), partSize); } 
 	
+	/**
+	 * Constructor that takes in a {@link File} and a partition size
+	 * @param inputFile The input {@link File}
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartSize(File inputFile, int partSize) throws FileNotFoundException { this(inputFile, (long) partSize); }
+	
+	/**
+	 * Constructor that takes in a {@link File} and a partition size
+	 * @param inputFile The input {@link File}
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterByPartSize(File inputFile, long partSize) throws FileNotFoundException {
 		super(inputFile);
 		setPartSize(partSize);
@@ -61,7 +114,6 @@ public class FileSplitterByPartSize extends Action implements FileSplitter {
                 FileOutputStream outputStream = new FileOutputStream(outputFile);
                 
                 long len = (i<parts) ? partSize : lastPartSize;
-                byte[] buffer = new byte[(int) len];
             	System.out.println("part: " + i + "/" + parts + "; len: " + len + "; offset: " + ((i-1)*partSize));
             	
             	FileUtils.transfer(inputStream, outputStream, len);

@@ -2,7 +2,16 @@ package utils;
 
 import actors.*;
 
+/**
+ * A bunch of utility functions
+ */
 public class Utils {
+	
+	/**
+	 * A function that returns true if a {@link String} is a number
+	 * @param str The input {@link String}
+	 * @return {@code true} if the input is a number, {@code false} otherwise
+	 */
 	public static boolean isNumeric(final String str) {
         // null or empty
         if (str == null || str.length() == 0)
@@ -32,6 +41,11 @@ public class Utils {
 		return "???";
 	}
 	
+	/**
+	 * A function that capitalizes the input {@link String}
+	 * @param str The input {@link String}
+	 * @return 
+	 */
 	public static String capitalizeString(String str) {
 		if (str.length() == 0)
 			return "";

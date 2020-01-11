@@ -1,7 +1,5 @@
 package actors;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,22 +16,15 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import actors.Action.Status;
-import utils.FileUtils;
-import utils.Progress;
-
-public class FileSplitterWithEncryption extends Action implements FileSplitter {
+/**
+ * A {@link FileSplitter} that splits {@link File}s by part size and encrypts each part
+ */
+public class FileSplitterWithEncryption extends FileSplitterByPartSize {
 	public static final long DEFAULT_BUFFER_SIZE = 1024*1024*1;
 	
-	private String key;
-	private Cipher cipher;
-	public String getKey() { return key; }
-	public boolean setKey(String key) {
-		if (key != null)
-			this.key = key;
-		return (key != null);
-	}
-	
+	/**
+	 * An {@code enum} that defines the possible results of a split
+	 */
 	public enum SplitResult {
 		OK,
 		MISSING_FILE,
@@ -41,16 +32,74 @@ public class FileSplitterWithEncryption extends Action implements FileSplitter {
 		GENERIC_ERROR
 	}
 	
-	protected long partSize;
-	public long getPartSize() { return partSize; }
-	public void setPartSize(long size) { partSize = size; }
+	/**
+	 * The key used for decryption
+	 */
+	private String key;
 	
+	/**
+	 * The {@code Cipher} used for decryption
+	 */
+	private Cipher cipher;
+	
+	
+	/**
+	 * Gets the {@code key}
+	 * @return The {@code key}
+	 */
+	public String getKey() { return key; }
+	
+	/**
+	 * Sets the {@code key}
+	 * @param key The {@code key}
+	 */
+	public boolean setKey(String key) {
+		if (key != null)
+			this.key = key;
+		return (key != null);
+	}
+	
+	/**
+	 * Constructor that takes in a {@link File} and a key
+	 * @param inputFile The the input {@link File}
+	 * @param key The key
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterWithEncryption(File inputFile, String key) throws FileNotFoundException, InvalidKeyException { this(inputFile, key, DEFAULT_BUFFER_SIZE); }
+	
+	/**
+	 * Constructor that takes in a path and a key
+	 * @param inputFilePath The path of the input {@link File}
+	 * @param key The key
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterWithEncryption(String inputFilePath, String key) throws FileNotFoundException, InvalidKeyException { this(inputFilePath, key, DEFAULT_BUFFER_SIZE); }
 	
+	/**
+	 * Constructor that takes in a path, a key and a partition size
+	 * @param inputFilePath The path of the input {@link File}
+	 * @param key The key
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterWithEncryption(String inputFilePath, String key, long partSize) throws FileNotFoundException, InvalidKeyException { this(new File(inputFilePath), key, partSize); } 
 	
+	/**
+	 * Constructor that takes in a {@link File}, a key and a partition size
+	 * @param inputFile The input {@link File}
+	 * @param key The key
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterWithEncryption(File inputFile, String key, int partSize) throws FileNotFoundException, InvalidKeyException { this(inputFile, key, (long) partSize); }
+	
+	/**
+	 * Constructor that takes in a {@link File}, a key and a partition size
+	 * @param inputFile The input {@link File}
+	 * @param key The key
+	 * @param partSize The size of each partition
+	 * @throws FileNotFoundException
+	 */
 	public FileSplitterWithEncryption(File inputFile, String key, long partSize) throws FileNotFoundException, InvalidKeyException {
 		super(inputFile);
 		if (key == null) {
