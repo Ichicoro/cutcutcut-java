@@ -27,6 +27,10 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 
+/**
+ * This JDialog lets the user configure an {@link Action}. TO SHOW THIS, CALL {@code showDialog()}!
+ * DO NOT USE THE {@code show()} METHOD!
+ */
 public class SplitActionDialog extends JDialog {
 	
 	private File f;
@@ -39,27 +43,32 @@ public class SplitActionDialog extends JDialog {
 	
 	private JTextField passwordTextField;
 	private JFormattedTextField encryptedSplitSizeTextField;
-	/**
-	 * Create the dialog.
-	 */
 	
+	/**
+	 * Creates the dialog using the specified {@link File}.
+	 * @param f The {@link File}
+	 */
 	public SplitActionDialog(File f) {
 		this();
 		this.f = f;
 	}
 	
+	/**
+	 * Creates the dialog with the chosen {@link Action}.
+	 * @param a The {@link Action}
+	 */
 	public SplitActionDialog(Action a) {
 		this(a.getFile());
 		if (a instanceof FileSplitter) {
-			if (a instanceof FileSplitterByPartSize) {
+			if (a instanceof FileSplitterWithEncryption) {
+				tabbedPane.setSelectedIndex(1);
+				encryptedSplitSizeTextField.setText(""+((FileSplitterWithEncryption) a).getPartSize());
+				passwordTextField.setText(""+((FileSplitterWithEncryption) a).getKey());
+			} else if (a instanceof FileSplitterByPartSize) {
 				standardSplitSizeTextField.setText(""+((FileSplitterByPartSize) a).getPartSize());
 			} else if (a instanceof FileSplitterByPartCount) {
 				tabbedPane.setSelectedIndex(2);
 				splitAmountTextField.setText(""+((FileSplitterByPartCount) a).getPartCount());
-			} else if (a instanceof FileSplitterWithEncryption) {
-				tabbedPane.setSelectedIndex(1);
-				encryptedSplitSizeTextField.setText(""+((FileSplitterWithEncryption) a).getPartSize());
-				passwordTextField.setText(""+((FileSplitterWithEncryption) a).getKey());
 			}
 		} else {
 			// RIP
@@ -230,7 +239,7 @@ public class SplitActionDialog extends JDialog {
 					public void actionPerformed(ActionEvent e) {
 						try {
 							if (tabbedPane.getSelectedIndex() == 0)
-								resultAction = new FileSplitterByPartSize(f, Long.parseLong(standardSplitSizeTextField.getText().replaceAll(",", "")));
+								resultAction = new FileSplitterByPartSize(f, Long.parseLong(standardSplitSizeTextField.getText().replaceAll(",", "").replaceAll("\\.", "")));
 							else if (tabbedPane.getSelectedIndex() == 1)
 								resultAction = new FileSplitterWithEncryption(f, passwordTextField.getText(), Long.parseLong(encryptedSplitSizeTextField.getText().replaceAll(",", "")));
 							else if (tabbedPane.getSelectedIndex() == 2)
@@ -260,6 +269,10 @@ public class SplitActionDialog extends JDialog {
 		}
 	}
 	
+	/**
+	 * This method shows the dialog. CALL THIS!
+	 * @return The resulting {@link Action}
+	 */
 	Action showDialog() {
 		setVisible(true);
 		return resultAction;

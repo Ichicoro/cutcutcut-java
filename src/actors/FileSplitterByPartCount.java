@@ -41,7 +41,7 @@ public class FileSplitterByPartCount extends Action implements FileSplitter {
 	 * @return {@code true} if successful, {@code false} if not
 	 */
 	public boolean setPartCount(long count) {
-		if (partCount >= 1) {
+		if (count >= 1) {
 			partCount = count;
 			return true;
 		}

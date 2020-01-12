@@ -23,20 +23,27 @@ public class Utils {
         return true;
     }
 	
+	/**
+	 * A function that returns a UI-usable {@link String} representation of the
+	 * type of an {@link Action}
+	 * @param a The input {@link Action}
+	 * @return
+	 */
 	public static String getActionTypeText(Action a) {
 		System.out.println(a.getClass());
-		if (a instanceof FileSplitter)
+		if (a instanceof FileSplitter) {
 			if (a instanceof FileSplitterByPartSize)
 				return "By size";
 			else if (a instanceof FileSplitterWithEncryption)
 				return "Encrypted";
 			else if (a instanceof FileSplitterByPartCount)
 				return "By count";
-		if (a instanceof FileMerger)
-			if (a instanceof DefaultFileMerger)
-				return "By size/count";
-			else if (a instanceof EncryptedFileMerger)
+		} else if (a instanceof FileMerger) {
+			if (a instanceof EncryptedFileMerger)
 				return "Encrypted";
+			else if (a instanceof DefaultFileMerger)
+				return "By size/count";
+		}
 		System.out.println("is a a merger? " + (a instanceof DefaultFileMerger));// || a instanceof EncryptedFileMerger));
 		return "???";
 	}

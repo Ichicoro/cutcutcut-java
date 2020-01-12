@@ -55,7 +55,16 @@ public class MainPanel extends JPanel {
 	
 	private volatile int amountOfCompletedActions = 0;
 	
+	/**
+	 * An {@link ArrayList} of {@link Actions}
+	 */
 	private ArrayList<Action> actions;
+	
+	/**
+	 * A method that adds an action to the queue
+	 * @param a The {@link Action} that gets added to the queue
+	 * @return
+	 */
 	private boolean addAction(Action a) {
 		if (a == null) return false;
 		a.setStatus(Action.Status.WAITING);
@@ -79,6 +88,11 @@ public class MainPanel extends JPanel {
 		return true;
 	}
 	
+	/**
+	 * A method that replace an action in the queue
+	 * @param a The {@link Action} that gets replaced
+	 * @return
+	 */
 	private boolean replaceAction(Action a, int index) {
 		if (a == null) return false;
 		DefaultTableModel dtm = ((DefaultTableModel) table.getModel());
@@ -196,6 +210,9 @@ public class MainPanel extends JPanel {
 		setupListeners();
 	}
 	
+	/**
+	 * This method setups listeners in the panel
+	 */
 	private void setupListeners() {
 		btnRemoveFile.addActionListener(new ActionListener() {
 			@Override
@@ -277,6 +294,9 @@ public class MainPanel extends JPanel {
 		});
 	}
 	
+	/**
+	 * This method setups the JTable
+	 */
 	private void setupTable() {
 		table.setFocusable(false);
 		table.getTableHeader().setReorderingAllowed(false); 
@@ -306,7 +326,8 @@ public class MainPanel extends JPanel {
 			  } else {
 		    	  btnRemoveFile.setEnabled(true);
 		    	  btnEdit.setEnabled(false);
-				  if (!(actions.get(table.getSelectedRow()) instanceof DefaultFileMerger) && actions.get(table.getSelectedRow()).getStatus() != Action.Status.FINISHED)
+		    	  Action selAction = actions.get(table.getSelectedRow());
+				  if (!((selAction instanceof DefaultFileMerger) && !(selAction instanceof EncryptedFileMerger)) && selAction.getStatus() != Action.Status.FINISHED)
 					  btnEdit.setEnabled(true);
 		      }
 		  }
@@ -320,12 +341,22 @@ public class MainPanel extends JPanel {
 		mod.addColumn("Status");
 	}
 	
+	/**
+	 * This method opens a file picker
+	 * @return The selected {@link File}. Null if canceled
+	 */
 	public File pickFile() { return pickFile("Pick a file..."); }
+	
+	/**
+	 * This method opens a file picker with the specified title
+	 * @param dialogTitle The title of the JFileChooser
+	 * @return The selected {@link File}. Null if canceled
+	 */
 	public File pickFile(String dialogTitle) {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fileChooser.setDialogTitle(dialogTitle);
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+		fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 		int result = fileChooser.showOpenDialog(this);
 		if (result == JFileChooser.APPROVE_OPTION) {
 		    File selectedFile = fileChooser.getSelectedFile();
@@ -336,6 +367,10 @@ public class MainPanel extends JPanel {
 		}
 	}
 	
+	/**
+	 * This method propts the user to pick a to-be-split {@link File} and adds it to the queue
+	 * after configuring the {@link Action}
+	 */
 	private void pickSplittableFile() {
 		File selectedFile = pickFile("Select to-be-split file...");
 		if (selectedFile == null || !selectedFile.exists() || !selectedFile.canRead()) {
@@ -348,6 +383,10 @@ public class MainPanel extends JPanel {
 		addAction(a);
 	}
 	
+	/**
+	 * This method propts the user to pick a to-be-merged {@link File} and adds it to the queue
+	 * after configuring the {@link Action}
+	 */
 	private void pickMergeableFile() {
 		File selectedFile = pickFile("Select to-be-merged file...");
 		if (selectedFile == null || !selectedFile.exists() || !selectedFile.canRead() || !FileUtils.verifyMergeFilename(selectedFile.getName())) {
@@ -380,6 +419,11 @@ public class MainPanel extends JPanel {
 		addAction(a);
 	}
 	
+	
+	/**
+	 * This method manages the buttons in the UI, setting them as well
+	 * @param btnState The new state of the buttons
+	 */
 	private void setButtonsEnabled(final boolean btnState) {
 		btnPlus.setEnabled(btnState);
 		table.setRowSelectionAllowed(btnState);
@@ -387,6 +431,9 @@ public class MainPanel extends JPanel {
 		activeButtons = btnState;
 	}
 	
+	/**
+	 * This action starts the queue and updates the UI as needed
+	 */
 	private void startQueue() {
 		amountOfCompletedActions = 0;
 		
@@ -433,11 +480,11 @@ public class MainPanel extends JPanel {
 						finalActionStatus += ": ";
 						if (selectedAction instanceof FileSplitter) {
 							finalActionStatus += FileSplitterByPartSize.SplitResult.values()[actionResult];
-						} else if (selectedAction instanceof DefaultFileMerger) {
-							finalActionStatus += DefaultFileMerger.MergeResult.values()[actionResult];
 						} else if (selectedAction instanceof EncryptedFileMerger) {
 							finalActionStatus += EncryptedFileMerger.MergeResult.values()[actionResult];
-						}
+						} else if (selectedAction instanceof DefaultFileMerger) {
+							finalActionStatus += DefaultFileMerger.MergeResult.values()[actionResult];
+						} 
 					}
 					
 					((DefaultTableModel) table.getModel()).setValueAt(finalActionStatus, actionIndex, table.getColumnCount()-1);
